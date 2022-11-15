@@ -1,54 +1,79 @@
+#dataset link : https://www.kaggle.com/datasets/kyanyoga/sample-sales-data
+
+#Importing the required libraries
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import plotly.express as px
+import seaborn as sns
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
 
-def mean_squared_error(y_true, y_predicted):
-	cost = np.sum((y_true-y_predicted)**2) / len(y_true) #Calculating the loss or cost
-	return cost
-def gradient_descent(x, y, iterations = 1000, learning_rate = 0.0001, stopping_threshold =
-	#Initializing weight, bias, learning rate and iterations
-	current_weight = 0.1
-	current_bias = 0.01
-	iterations = iterations
-	learning_rate = learning_rate
-	n = float(len(x))
-	costs = []
-	weights = []
-	previous_cost = None
-	for i in range(iterations): #Estimation of optimal parameters
-		y_predicted = (current_weight * x) + current_bias #Making predictions
-		current_cost = mean_squared_error(y, y_predicted) #Calculationg the current cost
-		#If the change in cost is less than or equal to stopping_threshold we stop the gra
-		if previous_cost and abs(previous_cost-current_cost)<=stopping_threshold:
-			break
-		previous_cost = current_cost
-		costs.append(current_cost)
-		weights.append(current_weight)
-		#Calculating the gradients
-		weight_derivative = -(2/n) * sum(x * (y-y_predicted))
-		bias_derivative = -(2/n) * sum(y-y_predicted)
-		#Updating weights and bias
-		current_weight = current_weight - (learning_rate * weight_derivative)
-		current_bias = current_bias - (learning_rate * bias_derivative)
-		#Printing the parameters for each 1000th iteration
-		print(f"Iteration{i+1}:Cost{current_cost},Weight\{current_weight},Bias{current_bia
-	#Visualizing the weights and cost at for all iterations
-	plt.figure(figsize = (8,6))
-	plt.plot(weights, costs)
-	plt.scatter(weights, costs, marker='o', color='red')
-	plt.title("Cost vs Weights")
-	plt.ylabel("Cost")
-	plt.xlabel("Weight")
-	plt.show()
-	return current_weight, current_bias
-#Estimating weight and bias using gradient descent
-estimated_weight, eatimated_bias = gradient_descent(X, Y, iterations=2000)
-print(f"Estimated Weight: {estimated_weight}\nEstimated Bias: {eatimated_bias}")
-Y_pred = estimated_weight*X + eatimated_bias #Making predictions using estimated parameter
-#Plotting the regression line
-plt.figure(figsize = (8,6))
-plt.scatter(X, Y, marker='o', color='red')
-plt.plot([min(X), max(X)], [min(Y_pred), max(Y_pred)], color='blue',markerfacecolor='red',
-plt.xlabel("X")
-plt.ylabel("Y")
+
+
+df = pd.read_csv('sales_data_sample.csv', encoding = 'unicode_escape') #Reading the csv file.
+df.head()
+
+
+
+#Removing the coloumns which dont add value for the analysis.
+to_drop = ['PHONE','ADDRESSLINE1','ADDRESSLINE2','CITY','STATE','POSTALCODE','TERRITORY','CONTACTLASTNAME','CONTACTFIRSTNAME','CUSTOMERNAME','ORDERNUMBER','QTR_ID','ORDERDATE']
+df = df.drop(to_drop, axis=1)
+df.head()
+
+
+df.nunique() #Checking unique values.
+
+df.isnull().sum()
+
+
+#Encodning Categorical Variables for easier processing.
+status_dict = {'Shipped':1, 'Cancelled':2, 'On Hold':2, 'Disputed':2, 'In Process':0, 'Resolved':0}
+df['STATUS'].replace(status_dict, inplace=True)
+df['PRODUCTCODE'] = pd.Categorical(df['PRODUCTCODE']).codes
+df = pd.get_dummies(data=df, columns=['PRODUCTLINE', 'DEALSIZE', 'COUNTRY'])
+df.dtypes
+
+
+#Using Heatmaps to find links between the data
+plt.figure(figsize = (20, 20))
+corr_matrix = df.iloc[:, :10].corr()
+sns.heatmap(corr_matrix, annot=True);
+
+#Finding correlation between variables using pairplots
+fig = px.scatter_matrix(df, dimensions=df.columns[:8], color='MONTH_ID') #Fill color by months
+fig.update_layout(title_text='Sales Data', width=1100, height=1100)
+fig.show()
+
+
+# Scale the data
+std = StandardScaler()
+sdf = std.fit_transform(df)
+wcss = []
+for i in range(1,15):
+    km = KMeans(n_clusters=i)
+    km.fit(sdf)
+    wcss.append(km.inertia_) # intertia is the Sum of squared distances of samples to their closest cluster center (WCSS)
+
+plt.plot(wcss, marker='o', linestyle='--')
+plt.title('The Elbow Method (Finding right number of clusters)')
+plt.xlabel('Number of CLusters')
+plt.ylabel('WCSS')
 plt.show()
 
+
+#Applying k-means with 5 clusters as the elbow seems to form at 5 clusters
+km = KMeans(n_clusters=5, random_state=1)
+km.fit(sdf)
+cluster_labels = km.labels_
+df = df.assign(Cluster=cluster_labels)
+df.head()
+
+df = df.groupby(['Cluster']).mean() #Grouping by Cluster
+df.head()
+
+
+#Heatmap after Kmeans clustering
+plt.figure(figsize = (20, 20))
+corr_matrix = df.iloc[:, :8].corr()
+sns.heatmap(corr_matrix, annot=True);
