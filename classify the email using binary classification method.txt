@@ -1,10 +1,15 @@
+#dataset link : https://www.kaggle.com/datasets/balaka18/email-spam-classification-dataset-csv
+
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.metrics import confusion_matrix, classification_report,accuracy_score
-df=pd.read_csv("emails.csv") #Reading the Dataset
+
+
+df=pd.read_csv("emails.csv") 
+#Reading the Dataset
 df.head()
 df.drop(columns=['Email No.'], inplace=True) 
 df.head()
