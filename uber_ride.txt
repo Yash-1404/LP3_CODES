@@ -74,7 +74,7 @@ def apply_model(model): #Model to print the metrics of the various prediction mo
 	print("Predicted values:\n",Y_pred)
 	print("Mean Absolute Error =", metrics.mean_absolute_error(Y_test, Y_pred))
 	print("Mean Squared Error =", metrics.mean_squared_error(Y_test, Y_pred))
-	print("Root Mean Squared Error =", np.sqrt(metrics.mean_squared_error(Y_test, Y_pred))
+	print("Root Mean Squared Error =", np.sqrt(metrics.mean_squared_error(Y_test, Y_pred)))
 
 lr = LinearRegression()
 apply_model(lr)
