@@ -22,7 +22,7 @@ def haversine (lon_1, lon_2, lat_1, lat_2):
 	diff_lat = lat_2 - lat_1
 	distance = 2 * 6371 * np.arcsin(np.sqrt(np.sin(diff_lat/2.0)**2+np.cos(lat_1)*np.sin(diff_lon/2.0)**2))
 	return distance
-df['Distance']=haversine(df['pickup_longitude'],df['dropoff_longitude'],df['pickup_latitude'])
+df['Distance']=haversine(df['pickup_longitude'],df['dropoff_longitude'],df['pickup_latitude'],df['dropoff_longitude'])
 df['Distance'] = df['Distance'].astype(float).round(2) #Rounding-off to 2 decimals
 df.head()
 
