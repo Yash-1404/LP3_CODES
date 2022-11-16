@@ -15,10 +15,10 @@ def RecursiveFibbo(n):
     else:
         return(RecursiveFibbo(n-1) + RecursiveFibbo(n-2))
 def main():
+     n = int(input("Enter number:"))
     print("Iterative")
     IterativeFibbo(n)
     print("\nrecu")
-    n = int(input("Enter number:"))
     for i in range(n):
         print(RecursiveFibbo(i))
         
